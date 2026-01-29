@@ -2,7 +2,7 @@ import User from "../models/UserModal.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
-const createToken = (userId, email) => {
+export const createToken = (userId, email) => {
   if (!process.env.JWT_SECRET) {
     throw new Error("JWT_SECRET is not defined");
   }

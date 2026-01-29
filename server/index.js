@@ -3,6 +3,8 @@ import dotenv from "dotenv";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import mongoose from "mongoose";
+import passport from "passport";
+import "./config/passport.js";
 import routes from "./routes/index.js";
 
 dotenv.config();
@@ -21,6 +23,7 @@ app.use(
   }),
 );
 
+app.use(passport.initialize());
 app.use("/api", routes);
 
 const server = app.listen(port, () => {

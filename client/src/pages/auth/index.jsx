@@ -25,8 +25,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Loader2 } from "lucide-react";
-import { Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
+import { FcGoogle } from "react-icons/fc";
+import { HOST } from "@/utils.js/constant";
 
 export default function AuthPage() {
   const navigate = useNavigate();
@@ -82,6 +83,10 @@ export default function AuthPage() {
         },
       },
     );
+  };
+
+  const handleGoogleLogin = () => {
+    window.location.href = `${HOST}/api/auth/google`;
   };
 
   return (
@@ -303,7 +308,29 @@ export default function AuthPage() {
             </TabsContent>
           </Tabs>
         </CardContent>
-        <CardFooter className="flex flex-col gap-3" />
+
+        <CardFooter className="flex flex-col gap-4">
+          <div className="relative w-full flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-gray-200" />
+            </div>
+            <span className="relative bg-white px-2 text-xs text-gray-400 uppercase">
+              Or continue with
+            </span>
+          </div>
+
+          <Button
+            variant="outline"
+            type="button"
+            className="w-full py-6 border-gray-100 flex items-center justify-center gap-3 hover:bg-gray-50 transition-all rounded-xl shadow-sm cursor-pointer"
+            onClick={handleGoogleLogin}
+          >
+            <FcGoogle size={24} />
+            <span className="text-gray-700 font-semibold text-base">
+              Google
+            </span>
+          </Button>
+        </CardFooter>
       </Card>
     </div>
   );

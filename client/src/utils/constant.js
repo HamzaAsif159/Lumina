@@ -1,10 +1,15 @@
 export const HOST = import.meta.env.VITE_SERVER_URL || "http://localhost:5001";
 
 export const AUTH_ROUTE = "/api/auth";
-
 export const SIGN_UP_ROUTE = `${AUTH_ROUTE}/signup`;
 export const LOGIN_ROUTE = `${AUTH_ROUTE}/login`;
 export const LOGOUT_ROUTE = `${AUTH_ROUTE}/logout`;
+
+export const MFA_ROUTE = `${AUTH_ROUTE}/mfa`;
+export const SETUP_MFA_ROUTE = `${MFA_ROUTE}/setup`;
+export const VERIFY_MFA_ROUTE = `${MFA_ROUTE}/verify`;
+export const LOGIN_VERIFY_MFA_ROUTE = `${MFA_ROUTE}/login-verify`;
+export const DISABLE_MFA_ROUTE = `${MFA_ROUTE}/disable`;
 
 export const GET_USER_INFO = `api/user/me`;
 export const UPDATE_PROFILE_ROUTE = "/api/user/me";

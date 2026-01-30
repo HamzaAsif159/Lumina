@@ -7,6 +7,22 @@ const UserSchema = new mongoose.Schema({
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
   image: { type: String },
+  refreshToken: [
+    {
+      token: { type: String },
+      createdAt: { type: String },
+    },
+  ],
+  mfa: {
+    enabled: { type: Boolean, default: false },
+    secret: { type: String },
+    primaryMethod: {
+      type: String,
+      enum: ["none", "totp", "email", "sms"],
+      default: "none",
+    },
+    backupCodes: [String],
+  },
 });
 
 UserSchema.pre("save", async function (next) {

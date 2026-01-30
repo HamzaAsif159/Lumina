@@ -1,15 +1,7 @@
 import User from "../models/UserModal.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-
-export const createToken = (userId, email) => {
-  if (!process.env.JWT_SECRET) {
-    throw new Error("JWT_SECRET is not defined");
-  }
-  return jwt.sign({ userId, email }, process.env.JWT_SECRET, {
-    expiresIn: "1h",
-  });
-};
+import { generateTokens } from "../utils/token.js";
 
 export const signup = async (req, res) => {
   try {
@@ -17,39 +9,24 @@ export const signup = async (req, res) => {
     if (!email || !password || !firstName || !lastName) {
       return res.status(400).json({ message: "All fields are required" });
     }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({ message: "Invalid email format" });
-    }
+
     const existingUser = await User.findOne({ email });
-    if (existingUser) {
+    if (existingUser)
       return res.status(409).json({ message: "User already exists" });
-    }
 
-    const user = await User.create({
-      email,
-      password,
-      firstName,
-      lastName,
-    });
+    const user = await User.create({ email, password, firstName, lastName });
+    const { accessToken, refreshToken } = await generateTokens(user);
 
-    const token = createToken(user._id, email);
-
-    res.cookie("token", token, {
+    res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: false,
-      sameSite: "Lax",
-      maxAge: 60 * 60 * 1000,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    const { password: _, ...userResponse } = user.toObject();
-    res.status(201).json({
-      success: true,
-      user: userResponse,
-      token,
-    });
+    const { password: _, refreshToken: __, ...userResponse } = user.toObject();
+    res.status(201).json({ success: true, user: userResponse, accessToken });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -57,50 +34,92 @@ export const signup = async (req, res) => {
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password) {
-      return res
-        .status(400)
-        .json({ message: "Email and password are required" });
-    }
     const user = await User.findOne({ email });
+
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const token = createToken(user._id, email);
+    // Check if MFA is enabled
+    if (user.mfa && user.mfa.enabled) {
+      const mfaSessionToken = jwt.sign(
+        { userId: user._id, mfaPending: true },
+        process.env.JWT_ACCESS_SECRET,
+        { expiresIn: "5m" },
+      );
+      return res
+        .status(200)
+        .json({ success: true, mfaRequired: true, mfaSessionToken });
+    }
 
-    res.cookie("token", token, {
+    const { accessToken, refreshToken } = await generateTokens(user);
+
+    res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "Lax",
-      maxAge: 60 * 60 * 1000,
+      sameSite: "Strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    const { password: _, ...userResponse } = user.toObject();
-    res.status(200).json({
-      success: true,
-      user: userResponse,
-      token,
-    });
+    const { password: _, refreshToken: __, ...userResponse } = user.toObject();
+    res.status(200).json({ success: true, user: userResponse, accessToken });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: "Server error" });
   }
 };
 
 export const logout = async (req, res) => {
   try {
-    res.clearCookie("token", {
+    const refreshToken = req.cookies.refreshToken;
+    if (refreshToken) {
+      await User.updateOne(
+        { "refreshToken.token": refreshToken },
+        { $pull: { refreshToken: { token: refreshToken } } },
+      );
+    }
+
+    res.clearCookie("refreshToken", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "Lax",
+      sameSite: "Strict",
     });
-    res.status(200).json({
-      success: true,
-      message: "Logged out successfully",
-    });
+    res.status(200).json({ success: true, message: "Logged out successfully" });
   } catch (error) {
-    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const refreshToken = async (req, res) => {
+  try {
+    const tokenFromCookie = req.cookies.refreshToken;
+    if (!tokenFromCookie)
+      return res.status(401).json({ message: "No refresh token" });
+
+    const user = await User.findOne({ "refreshToken.token": tokenFromCookie });
+    if (!user) return res.status(403).json({ message: "Invalid session" });
+
+    jwt.verify(
+      tokenFromCookie,
+      process.env.JWT_REFRESH_SECRET,
+      (err, decoded) => {
+        if (err)
+          return res.status(403).json({ message: "Token expired or invalid" });
+
+        const accessToken = jwt.sign(
+          { userId: user._id, email: user.email },
+          process.env.JWT_ACCESS_SECRET,
+          { expiresIn: "15m" },
+        );
+
+        const {
+          password: _,
+          refreshToken: __,
+          ...userResponse
+        } = user.toObject();
+        res.status(200).json({ accessToken, user: userResponse });
+      },
+    );
+  } catch (error) {
     res.status(500).json({ message: "Server error" });
   }
 };

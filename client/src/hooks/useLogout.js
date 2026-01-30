@@ -1,7 +1,7 @@
 // hooks/useLogout.js
 import { useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { LOGOUT_ROUTE } from "@/utils.js/constant";
+import { LOGOUT_ROUTE } from "@/utils/constant";
 
 export const useLogout = () => {
   return useMutation({

@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { UPDATE_PROFILE_ROUTE } from "@/utils.js/constant";
+import { UPDATE_PROFILE_ROUTE } from "@/utils/constant";
 
 export const useProfile = () => {
   return useMutation({

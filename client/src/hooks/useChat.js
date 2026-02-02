@@ -2,12 +2,12 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { nanoid } from "nanoid";
 import { api } from "@/lib/api";
-import { HOST } from "@/utils.js/constant";
+import { HOST } from "@/utils/constant";
 import {
   CHAT_CREATE_ROUTE,
   CHAT_LIST_ROUTE,
   CHAT_SEND_ROUTE,
-} from "@/utils.js/constant";
+} from "@/utils/constant";
 import { useAppStore } from "@/store";
 
 export const useGetChats = () => {
@@ -35,14 +35,14 @@ export const useSendMessage = () => {
   return useMutation({
     mutationFn: async ({ chatId, message }) => {
       return new Promise((resolve, reject) => {
+        const token = localStorage.getItem("accessToken");
         let fullResponse = "";
         let botMessageId = nanoid();
         let hasBotMessage = false;
 
-        const eventSource = new EventSource(
-          `${HOST}${CHAT_SEND_ROUTE}?chatId=${chatId}&message=${encodeURIComponent(message)}`,
-          { withCredentials: true },
-        );
+        const url = `${HOST}${CHAT_SEND_ROUTE}?chatId=${chatId}&message=${encodeURIComponent(message)}&token=${encodeURIComponent(token)}`;
+
+        const eventSource = new EventSource(url, { withCredentials: true });
 
         eventSource.onmessage = (event) => {
           try {
@@ -105,7 +105,8 @@ export const useSendMessage = () => {
           }
         };
 
-        eventSource.onerror = () => {
+        eventSource.onerror = (err) => {
+          console.log(err);
           eventSource.close();
           reject(new Error("Stream failed"));
         };

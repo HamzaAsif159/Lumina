@@ -1,33 +1,53 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import AuthPage from "./pages/auth";
 import Chat from "./pages/chat";
 import Profile from "./pages/profile";
+import Settings from "./pages/settings";
 import Navbar from "./components/common/Navbar";
 import { useAppStore } from "./store";
+import { Loader2 } from "lucide-react";
 
 const PrivateRoute = ({ children }) => {
-  const { userInfo } = useAppStore();
+  const { userInfo, loading } = useAppStore();
+  if (loading) return null;
   return userInfo?._id ? children : <Navigate to="/auth" replace />;
 };
 
 const AuthRoute = ({ children }) => {
-  const { userInfo } = useAppStore();
+  const { userInfo, loading } = useAppStore();
+  if (loading) return null;
   return userInfo?._id ? <Navigate to="/chat" replace /> : children;
 };
 
 export default function App() {
   const { initializeAuth, loading, userInfo } = useAppStore();
   const location = useLocation();
+  const initialized = useRef(false);
 
   useEffect(() => {
-    initializeAuth();
-  }, []);
+    if (initialized.current) return;
+    initialized.current = true;
 
-  if (loading) {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+    const mfaRequired = params.get("mfaRequired");
+
+    if (token) {
+      localStorage.setItem("accessToken", token);
+      window.history.replaceState({}, document.title, window.location.pathname);
+      initializeAuth();
+    } else if (mfaRequired === "true") {
+      // Do nothing, let AuthPage handle the URL
+    } else {
+      initializeAuth();
+    }
+  }, [initializeAuth]);
+
+  if (loading && !userInfo) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        Loading...
+        <Loader2 className="animate-spin text-indigo-600" size={40} />
       </div>
     );
   }
@@ -37,7 +57,6 @@ export default function App() {
   return (
     <>
       {showNavbar && <Navbar />}
-
       <Routes>
         <Route
           path="/auth"
@@ -60,6 +79,14 @@ export default function App() {
           element={
             <PrivateRoute>
               <Profile />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <PrivateRoute>
+              <Settings />
             </PrivateRoute>
           }
         />

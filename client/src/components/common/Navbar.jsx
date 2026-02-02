@@ -4,7 +4,11 @@ import { useNavigate } from "react-router-dom";
 import { useAppStore } from "@/store";
 import { UserAvatar } from "./UserAvatar";
 import { useLogout } from "@/hooks/useLogout";
-import { LogOut, User, MessageCircle } from "lucide-react";
+import {
+  LogOut,
+  User,
+  Settings as SettingsIcon,
+} from "lucide-react";
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -12,6 +16,8 @@ export default function Navbar() {
   const logoutMutation = useLogout();
 
   const handleProfile = () => navigate("/profile");
+  const handleSettings = () => navigate("/settings");
+
   const handleLogout = () => {
     logoutMutation.mutate(undefined, {
       onSuccess: () => {
@@ -24,7 +30,6 @@ export default function Navbar() {
   return (
     <nav className="w-full bg-white/90 backdrop-blur-xl border-b border-indigo-100 shadow-sm">
       <div className="px-6 py-4 flex items-center justify-between h-16">
-        {/* ByteBot Logo */}
         <div
           className="font-black text-xl bg-gradient-to-r from-indigo-600 to-indigo-700 bg-clip-text text-transparent hover:from-indigo-700 hover:to-indigo-800 transition-all duration-200 hover:scale-[1.02] cursor-pointer select-none"
           onClick={() => navigate("/chat")}
@@ -32,7 +37,6 @@ export default function Navbar() {
           ByteBot
         </div>
 
-        {/* User Dropdown Only */}
         <DropdownMenu.Root>
           <DropdownMenu.Trigger asChild>
             <button className="outline-none group">
@@ -50,7 +54,6 @@ export default function Navbar() {
 
           <DropdownMenu.Portal>
             <DropdownMenu.Content className="bg-white/95 backdrop-blur-xl border border-indigo-100 shadow-xl rounded-xl p-1 min-w-[220px] mr-1">
-              {/* User info */}
               <div className="px-3 py-2.5 border-b border-indigo-100">
                 <div className="flex items-center gap-1.5 mb-0.5">
                   <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full" />
@@ -63,7 +66,6 @@ export default function Navbar() {
                 </div>
               </div>
 
-              {/* Profile */}
               <DropdownMenu.Item
                 className="px-3 py-2.5 cursor-pointer hover:bg-indigo-50 rounded-lg flex items-center gap-2.5 font-medium text-slate-800 transition-all duration-150 hover:scale-[1.01]"
                 onSelect={handleProfile}
@@ -72,10 +74,18 @@ export default function Navbar() {
                   <User className="h-4 w-4 text-indigo-600" />
                 </div>
                 Profile
-                <MessageCircle className="h-3.5 w-3.5 ml-auto text-indigo-400" />
               </DropdownMenu.Item>
 
-              {/* Logout */}
+              <DropdownMenu.Item
+                className="px-3 py-2.5 cursor-pointer hover:bg-indigo-50 rounded-lg flex items-center gap-2.5 font-medium text-slate-800 transition-all duration-150 hover:scale-[1.01]"
+                onSelect={handleSettings}
+              >
+                <div className="p-1.5 bg-indigo-100/50 hover:bg-indigo-200 rounded transition-colors">
+                  <SettingsIcon className="h-4 w-4 text-indigo-600" />
+                </div>
+                Settings
+              </DropdownMenu.Item>
+
               <DropdownMenu.Item
                 className="px-3 py-2.5 cursor-pointer hover:bg-indigo-50 border-t border-indigo-100 rounded-b-lg flex items-center gap-2.5 font-medium text-slate-800 transition-all duration-150 data-[disabled]:opacity-50"
                 onSelect={handleLogout}

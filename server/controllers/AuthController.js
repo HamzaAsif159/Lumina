@@ -1,6 +1,8 @@
 import User from "../models/UserModal.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
+import redis from "../config/redis.js";
+import { RedisKeys } from "../utils/redisKeys.js";
 import { generateTokens } from "../utils/token.js";
 
 export const signup = async (req, res) => {
@@ -71,6 +73,24 @@ export const login = async (req, res) => {
 export const logout = async (req, res) => {
   try {
     const refreshToken = req.cookies.refreshToken;
+    const authHeader = req.headers.authorization;
+    const accessToken = authHeader && authHeader.split(" ")[1];
+
+    if (accessToken) {
+      const decoded = jwt.decode(accessToken);
+      if (decoded && decoded.jti) {
+        const now = Math.floor(Date.now() / 1000);
+        const timeLeft = decoded.exp - now;
+        if (timeLeft > 0) {
+          await redis.setex(
+            RedisKeys.tokenBlacklist(decoded.jti),
+            timeLeft,
+            "revoked",
+          );
+        }
+      }
+    }
+
     if (refreshToken) {
       await User.updateOne(
         { "refreshToken.token": refreshToken },
@@ -83,9 +103,12 @@ export const logout = async (req, res) => {
       secure: process.env.NODE_ENV === "production",
       sameSite: "Strict",
     });
-    res.status(200).json({ success: true, message: "Logged out successfully" });
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Logged out successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error" });
   }
 };
 

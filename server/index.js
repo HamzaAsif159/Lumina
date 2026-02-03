@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import mongoose from "mongoose";
 import passport from "passport";
 import "./config/passport.js";
+import "./config/redis.js"
 import routes from "./routes/index.js";
 
 dotenv.config();

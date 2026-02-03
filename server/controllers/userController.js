@@ -1,12 +1,25 @@
 import bcrypt from "bcrypt";
 import User from "../models/UserModal.js";
+import { RedisKeys } from "../utils/redisKeys.js";
+import redis from "../config/redis.js";
 
 export const getUserInfo = async (req, res) => {
   try {
-    const userData = await User.findById(req.userId);
+    const key = RedisKeys.userProfile(req.userId);
+    const cachedUser = await redis.get(key);
+
+    if (cachedUser) {
+      return res.status(200).json({ user: JSON.parse(cachedUser) });
+    }
+
+    const userData = await User.findById(req.userId).select("-password");
+
     if (!userData) {
       return res.status(404).json({ message: "User not found" });
     }
+
+    await redis.setex(key, 3600, JSON.stringify(userData));
+
     return res.status(200).json({ user: userData });
   } catch (error) {
     console.error(error);
@@ -27,9 +40,10 @@ export const updateUserInfo = async (req, res) => {
     if (lastName) user.lastName = lastName;
     if (email) user.email = email;
     if (image) user.image = image;
-    if (password)  user.password = password; 
+    if (password) user.password = password;
 
     await user.save();
+    await redis.del(RedisKeys.userProfile(req.userId));
 
     const { password: _, ...userResponse } = user.toObject();
     res.status(200).json({ message: "Profile updated", user: userResponse });

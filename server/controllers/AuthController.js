@@ -1,9 +1,10 @@
-import User from "../models/UserModal.js";
+import User from "../models/UserModel.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import redis from "../config/redis.js";
 import { RedisKeys } from "../utils/redisKeys.js";
 import { generateTokens } from "../utils/token.js";
+import { updateUserStatus } from "../services/presenceService.js";
 
 export const signup = async (req, res) => {
   try {
@@ -76,6 +77,9 @@ export const logout = async (req, res) => {
     const authHeader = req.headers.authorization;
     const accessToken = authHeader && authHeader.split(" ")[1];
 
+    const userId =
+      req.userId || (accessToken ? jwt.decode(accessToken)?.userId : null);
+
     if (accessToken) {
       const decoded = jwt.decode(accessToken);
       if (decoded && decoded.jti) {
@@ -98,6 +102,10 @@ export const logout = async (req, res) => {
       );
     }
 
+    if (userId) {
+      await updateUserStatus(userId, "offline");
+    }
+
     res.clearCookie("refreshToken", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -111,7 +119,6 @@ export const logout = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
-
 export const refreshToken = async (req, res) => {
   try {
     const tokenFromCookie = req.cookies.refreshToken;

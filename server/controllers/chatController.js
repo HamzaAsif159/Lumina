@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import Chat from "../models/ChatModal.js";
+import Chat from "../models/ChatModel.js";
 
 const getModel = () => {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -26,7 +26,7 @@ const generateChatTitle = (firstMessage) => {
 };
 
 const getByteBotPrompt = (context) => {
-  return `You are ByteBot, a helpful AI coding assistant. Respond conversationally and helpfully.
+  return `You are Luminabot, a helpful AI assistant. Respond conversationally and helpfully.
 
 ${context}
 Assistant:`;
@@ -36,10 +36,10 @@ export const sendMessage = async (req, res) => {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
-  res.setHeader("Access-Control-Allow-Origin", process.env.ORIGIN); 
+  res.setHeader("Access-Control-Allow-Origin", process.env.ORIGIN);
   res.setHeader("Access-Control-Allow-Credentials", "true");
   res.setHeader("Access-Control-Allow-Headers", "*");
-  
+
   res.flushHeaders();
 
   try {

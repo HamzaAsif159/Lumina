@@ -8,6 +8,8 @@ import {
   LogOut,
   User,
   Settings as SettingsIcon,
+  LayoutDashboard,
+  Sparkles,
 } from "lucide-react";
 
 export default function Navbar() {
@@ -17,6 +19,7 @@ export default function Navbar() {
 
   const handleProfile = () => navigate("/profile");
   const handleSettings = () => navigate("/settings");
+  const handleDashboard = () => navigate("/dashboard");
 
   const handleLogout = () => {
     logoutMutation.mutate(undefined, {
@@ -28,79 +31,90 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="w-full bg-white/90 backdrop-blur-xl border-b border-indigo-100 shadow-sm">
-      <div className="px-6 py-4 flex items-center justify-between h-16">
+    <nav className="w-full bg-white/70 backdrop-blur-md border-b border-slate-100 sticky top-0 z-50">
+      <div className="max-w-[1800px] mx-auto px-6 py-2 flex items-center justify-between">
         <div
-          className="font-black text-xl bg-gradient-to-r from-indigo-600 to-indigo-700 bg-clip-text text-transparent hover:from-indigo-700 hover:to-indigo-800 transition-all duration-200 hover:scale-[1.02] cursor-pointer select-none"
-          onClick={() => navigate("/chat")}
+          className="flex items-center gap-2 group cursor-pointer select-none"
+          onClick={handleDashboard}
         >
-          ByteBot
+          <div className="bg-slate-900 p-1.5 rounded-lg transition-transform group-hover:rotate-12 duration-300">
+            <Sparkles className="h-5 w-5 text-white" />
+          </div>
+          <span className="font-bold text-xl tracking-tight text-slate-800">
+            Lumi<span className="text-indigo-600">na</span>
+          </span>
         </div>
 
-        <DropdownMenu.Root>
-          <DropdownMenu.Trigger asChild>
-            <button className="outline-none group">
-              <div className="relative bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/50 p-2 rounded-lg transition-all duration-200 hover:scale-[1.02] hover:shadow-md hover:shadow-indigo-200/50">
+        <div className="flex items-center gap-4">
+          <DropdownMenu.Root>
+            <DropdownMenu.Trigger asChild>
+              <div className="relative shrink-0">
                 <UserAvatar
-                  firstName={userInfo?.firstName || "U"}
-                  lastName={userInfo?.lastName || "N"}
+                  firstName={userInfo?.firstName}
+                  lastName={userInfo?.lastName}
                   image={userInfo?.image}
-                  size="sm"
+                  size="md"
+                  className="cursor-pointer"
                 />
-                <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-indigo-500 border-2 border-white rounded-full shadow-sm" />
+                <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full" />
               </div>
-            </button>
-          </DropdownMenu.Trigger>
+            </DropdownMenu.Trigger>
 
-          <DropdownMenu.Portal>
-            <DropdownMenu.Content className="bg-white/95 backdrop-blur-xl border border-indigo-100 shadow-xl rounded-xl p-1 min-w-[220px] mr-1">
-              <div className="px-3 py-2.5 border-b border-indigo-100">
-                <div className="flex items-center gap-1.5 mb-0.5">
-                  <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full" />
-                  <span className="text-xs font-medium text-indigo-600 uppercase tracking-wider">
-                    Active
+            <DropdownMenu.Portal>
+              <DropdownMenu.Content
+                className="bg-white/95 backdrop-blur-xl border border-slate-200/60 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] rounded-2xl p-1.5 min-w-[240px] mt-1 animate-in fade-in zoom-in-95 duration-200"
+                sideOffset={8}
+                align="end"
+              >
+                <div className="px-4 py-3 mb-1 bg-slate-50/50 rounded-xl">
+                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                    Authenticated User
+                  </p>
+                  <p className="text-sm font-medium text-slate-900 truncate">
+                    {userInfo?.email}
+                  </p>
+                </div>
+
+                <DropdownMenu.Item
+                  className="group flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-600 rounded-lg outline-none cursor-pointer hover:bg-slate-50 hover:text-indigo-600 transition-colors"
+                  onSelect={handleDashboard}
+                >
+                  <LayoutDashboard className="h-4 w-4 opacity-70 group-hover:opacity-100" />
+                  Home
+                </DropdownMenu.Item>
+
+                <DropdownMenu.Item
+                  className="group flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-600 rounded-lg outline-none cursor-pointer hover:bg-slate-50 hover:text-indigo-600 transition-colors"
+                  onSelect={handleProfile}
+                >
+                  <User className="h-4 w-4 opacity-70 group-hover:opacity-100" />
+                  Profile
+                </DropdownMenu.Item>
+
+                <DropdownMenu.Item
+                  className="group flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-600 rounded-lg outline-none cursor-pointer hover:bg-slate-50 hover:text-indigo-600 transition-colors"
+                  onSelect={handleSettings}
+                >
+                  <SettingsIcon className="h-4 w-4 opacity-70 group-hover:opacity-100" />
+                  Security
+                </DropdownMenu.Item>
+
+                <div className="h-px bg-slate-100 my-1 mx-1" />
+
+                <DropdownMenu.Item
+                  className="group flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-red-500 rounded-lg outline-none cursor-pointer hover:bg-red-50 transition-colors"
+                  onSelect={handleLogout}
+                  disabled={logoutMutation.isPending}
+                >
+                  <LogOut className="h-4 w-4 opacity-70 group-hover:opacity-100" />
+                  <span>
+                    {logoutMutation.isPending ? "Signing out..." : "Sign Out"}
                   </span>
-                </div>
-                <div className="font-medium text-xs text-slate-800 truncate">
-                  {userInfo?.email}
-                </div>
-              </div>
-
-              <DropdownMenu.Item
-                className="px-3 py-2.5 cursor-pointer hover:bg-indigo-50 rounded-lg flex items-center gap-2.5 font-medium text-slate-800 transition-all duration-150 hover:scale-[1.01]"
-                onSelect={handleProfile}
-              >
-                <div className="p-1.5 bg-indigo-100/50 hover:bg-indigo-200 rounded transition-colors">
-                  <User className="h-4 w-4 text-indigo-600" />
-                </div>
-                Profile
-              </DropdownMenu.Item>
-
-              <DropdownMenu.Item
-                className="px-3 py-2.5 cursor-pointer hover:bg-indigo-50 rounded-lg flex items-center gap-2.5 font-medium text-slate-800 transition-all duration-150 hover:scale-[1.01]"
-                onSelect={handleSettings}
-              >
-                <div className="p-1.5 bg-indigo-100/50 hover:bg-indigo-200 rounded transition-colors">
-                  <SettingsIcon className="h-4 w-4 text-indigo-600" />
-                </div>
-                Settings
-              </DropdownMenu.Item>
-
-              <DropdownMenu.Item
-                className="px-3 py-2.5 cursor-pointer hover:bg-indigo-50 border-t border-indigo-100 rounded-b-lg flex items-center gap-2.5 font-medium text-slate-800 transition-all duration-150 data-[disabled]:opacity-50"
-                onSelect={handleLogout}
-                disabled={logoutMutation.isPending}
-              >
-                <div className="p-1.5 bg-indigo-100/50 hover:bg-indigo-200 rounded transition-colors">
-                  <LogOut className="h-4 w-4 text-indigo-600" />
-                </div>
-                <span className="flex-1">
-                  {logoutMutation.isPending ? "Logging out..." : "Sign Out"}
-                </span>
-              </DropdownMenu.Item>
-            </DropdownMenu.Content>
-          </DropdownMenu.Portal>
-        </DropdownMenu.Root>
+                </DropdownMenu.Item>
+              </DropdownMenu.Content>
+            </DropdownMenu.Portal>
+          </DropdownMenu.Root>
+        </div>
       </div>
     </nav>
   );

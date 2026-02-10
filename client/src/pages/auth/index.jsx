@@ -24,7 +24,14 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Loader2, Eye, EyeOff, ShieldCheck, ArrowLeft } from "lucide-react";
+import {
+  Loader2,
+  Eye,
+  EyeOff,
+  ShieldCheck,
+  ArrowLeft,
+  Sparkles,
+} from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import { HOST } from "@/utils/constant";
 import { api } from "@/lib/api";
@@ -71,7 +78,7 @@ export default function AuthPage() {
           toast.info("Two-Factor Authentication is required.");
         } else {
           setAuth(res.user, res.accessToken);
-          navigate("/chat");
+          navigate("/dashboard");
           toast.success("Login successful!");
         }
       },
@@ -91,7 +98,7 @@ export default function AuthPage() {
         mfaSessionToken: mfaToken,
       });
       setAuth(response.data.user, response.data.accessToken);
-      navigate("/chat");
+      navigate("/dashboard");
       toast.success("Identity verified!");
     } catch (error) {
       toast.error(error.response?.data?.message || "Invalid or expired code");
@@ -116,7 +123,7 @@ export default function AuthPage() {
       onSuccess: (res) => {
         setAuth(res.user, res.accessToken);
         toast.success("Account created successfully!");
-        navigate("/chat");
+        navigate("/dashboard");
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || "Signup failed.");
@@ -130,24 +137,40 @@ export default function AuthPage() {
 
   return (
     <div className="flex h-screen w-full items-center justify-center bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-4">
-      <Card className="w-full max-w-md shadow-2xl rounded-2xl border-none">
-        <CardHeader>
-          <CardTitle className="text-center text-2xl font-bold text-gray-800">
-            ByteBot 👋
-          </CardTitle>
-          <p className="text-center text-sm text-gray-500 mt-1">
+      <Card className="w-full max-w-2xl shadow-2xl rounded-3xl border-none overflow-hidden bg-white/95 backdrop-blur-sm">
+        <CardHeader className="pt-8 pb-4">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <div className="bg-slate-900 p-1.5 rounded-lg">
+              <Sparkles className="h-5 w-5 text-white" />
+            </div>
+            <CardTitle className="text-2xl font-bold tracking-tight text-slate-800">
+              Lumi<span className="text-indigo-600">na</span>
+            </CardTitle>
+          </div>
+          <p className="text-center text-sm text-slate-500">
             {mfaRequired
-              ? "Verify your device"
-              : "Login or create an account to continue"}
+              ? "Verify your identity to continue"
+              : "Welcome! Please enter your details."}
           </p>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-8">
           {!mfaRequired ? (
             <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-4">
-                <TabsTrigger value="login">Login</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 mb-6 bg-slate-100 p-1 rounded-xl">
+                <TabsTrigger
+                  value="login"
+                  className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                >
+                  Login
+                </TabsTrigger>
+                <TabsTrigger
+                  value="signup"
+                  className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                >
+                  Sign Up
+                </TabsTrigger>
               </TabsList>
+
               <TabsContent value="login">
                 <Form {...loginForm}>
                   <form
@@ -159,9 +182,15 @@ export default function AuthPage() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email</FormLabel>
+                          <FormLabel className="text-xs font-bold uppercase text-slate-500">
+                            Email
+                          </FormLabel>
                           <FormControl>
-                            <Input placeholder="you@example.com" {...field} />
+                            <Input
+                              className="bg-slate-50 border-slate-200 focus:ring-indigo-500 rounded-xl"
+                              placeholder="name@company.com"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -172,10 +201,13 @@ export default function AuthPage() {
                       name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Password</FormLabel>
+                          <FormLabel className="text-xs font-bold uppercase text-slate-500">
+                            Password
+                          </FormLabel>
                           <FormControl>
                             <div className="relative">
                               <Input
+                                className="bg-slate-50 border-slate-200 focus:ring-indigo-500 rounded-xl"
                                 type={showLoginPassword ? "text" : "password"}
                                 placeholder="••••••••"
                                 {...field}
@@ -185,7 +217,7 @@ export default function AuthPage() {
                                 onClick={() =>
                                   setShowLoginPassword(!showLoginPassword)
                                 }
-                                className="absolute inset-y-0 right-3 flex items-center text-gray-400"
+                                className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-indigo-500"
                               >
                                 {showLoginPassword ? (
                                   <EyeOff size={16} />
@@ -201,54 +233,76 @@ export default function AuthPage() {
                     />
                     <Button
                       type="submit"
-                      className="w-full bg-indigo-600"
+                      className="w-full bg-indigo-600 hover:bg-indigo-700 py-6 rounded-xl font-bold shadow-lg shadow-indigo-100 transition-all"
                       disabled={loginMutation.isPending}
                     >
-                      {loginMutation.isPending ? "Logging in..." : "Login"}
+                      {loginMutation.isPending ? (
+                        <Loader2 className="animate-spin" />
+                      ) : (
+                        "Sign In"
+                      )}
                     </Button>
                   </form>
                 </Form>
               </TabsContent>
+
               <TabsContent value="signup">
                 <Form {...signupForm}>
                   <form
                     onSubmit={signupForm.handleSubmit(onSignupSubmit)}
-                    className="space-y-4"
+                    className="space-y-3"
                   >
-                    <FormField
-                      control={signupForm.control}
-                      name="firstName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>First Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="John" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={signupForm.control}
-                      name="lastName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Last Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Doe" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <div className="grid grid-cols-2 gap-3">
+                      <FormField
+                        control={signupForm.control}
+                        name="firstName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs font-bold uppercase text-slate-500">
+                              First Name
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                className="bg-slate-50 border-slate-200 rounded-xl"
+                                placeholder="John"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={signupForm.control}
+                        name="lastName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs font-bold uppercase text-slate-500">
+                              Last Name
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                className="bg-slate-50 border-slate-200 rounded-xl"
+                                placeholder="Doe"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                     <FormField
                       control={signupForm.control}
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email</FormLabel>
+                          <FormLabel className="text-xs font-bold uppercase text-slate-500">
+                            Email
+                          </FormLabel>
                           <FormControl>
                             <Input
+                              className="bg-slate-50 border-slate-200 rounded-xl"
                               type="email"
                               placeholder="you@example.com"
                               {...field}
@@ -263,10 +317,13 @@ export default function AuthPage() {
                       name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Password</FormLabel>
+                          <FormLabel className="text-xs font-bold uppercase text-slate-500">
+                            Password
+                          </FormLabel>
                           <FormControl>
                             <div className="relative">
                               <Input
+                                className="bg-slate-50 border-slate-200 rounded-xl"
                                 type={showSignupPassword ? "text" : "password"}
                                 placeholder="••••••••"
                                 {...field}
@@ -276,7 +333,7 @@ export default function AuthPage() {
                                 onClick={() =>
                                   setShowSignupPassword(!showSignupPassword)
                                 }
-                                className="absolute inset-y-0 right-3 flex items-center text-gray-400"
+                                className="absolute inset-y-0 right-3 text-slate-400"
                               >
                                 {showSignupPassword ? (
                                   <EyeOff size={16} />
@@ -295,10 +352,13 @@ export default function AuthPage() {
                       name="confirmPassword"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Confirm Password</FormLabel>
+                          <FormLabel className="text-xs font-bold uppercase text-slate-500">
+                            Confirm Password
+                          </FormLabel>
                           <FormControl>
                             <div className="relative">
                               <Input
+                                className="bg-slate-50 border-slate-200 rounded-xl"
                                 type={showConfirmPassword ? "text" : "password"}
                                 placeholder="••••••••"
                                 {...field}
@@ -308,7 +368,7 @@ export default function AuthPage() {
                                 onClick={() =>
                                   setShowConfirmPassword(!showConfirmPassword)
                                 }
-                                className="absolute inset-y-0 right-3 flex items-center text-gray-400"
+                                className="absolute inset-y-0 right-3 text-slate-400"
                               >
                                 {showConfirmPassword ? (
                                   <EyeOff size={16} />
@@ -325,12 +385,12 @@ export default function AuthPage() {
                     <Button
                       type="submit"
                       disabled={signupMutation.isPending}
-                      className="w-full bg-indigo-600"
+                      className="w-full bg-indigo-600 hover:bg-indigo-700 py-6 rounded-xl font-bold shadow-lg shadow-indigo-100 transition-all"
                     >
                       {signupMutation.isPending ? (
                         <Loader2 className="animate-spin" />
                       ) : (
-                        "Sign Up"
+                        "Create Account"
                       )}
                     </Button>
                   </form>
@@ -338,21 +398,21 @@ export default function AuthPage() {
               </TabsContent>
             </Tabs>
           ) : (
-            <div className="space-y-6 py-4 flex flex-col items-center">
-              <div className="bg-indigo-100 p-4 rounded-full">
-                <ShieldCheck size={48} className="text-indigo-600" />
+            <div className="space-y-6 py-2 flex flex-col items-center">
+              <div className="bg-indigo-50 p-4 rounded-2xl border border-indigo-100">
+                <ShieldCheck size={40} className="text-indigo-600" />
               </div>
-              <div className="text-center space-y-2">
-                <h3 className="font-bold text-xl text-gray-800">
+              <div className="text-center space-y-1">
+                <h3 className="font-bold text-xl text-slate-800">
                   Two-Factor Auth
                 </h3>
-                <p className="text-sm text-gray-500">
-                  Enter the code from your authenticator app.
+                <p className="text-sm text-slate-500">
+                  Enter the 6-digit code from your app
                 </p>
               </div>
               <form onSubmit={handleMfaVerify} className="w-full space-y-4">
                 <Input
-                  className="text-center text-3xl h-16 tracking-widest font-mono"
+                  className="text-center text-3xl h-16 tracking-[0.3em] font-mono font-bold bg-slate-50 border-slate-200 rounded-xl focus:ring-indigo-500"
                   placeholder="000000"
                   maxLength={6}
                   value={mfaCode}
@@ -361,7 +421,7 @@ export default function AuthPage() {
                 />
                 <Button
                   type="submit"
-                  className="w-full bg-indigo-600 py-6"
+                  className="w-full bg-indigo-600 py-6 rounded-xl font-bold"
                   disabled={isVerifying}
                 >
                   {isVerifying ? (
@@ -373,7 +433,7 @@ export default function AuthPage() {
                 <button
                   type="button"
                   onClick={() => setMfaRequired(false)}
-                  className="w-full text-sm text-gray-400 flex items-center justify-center gap-2"
+                  className="w-full text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-slate-600 flex items-center justify-center gap-2 transition-colors"
                 >
                   <ArrowLeft size={14} /> Back to Login
                 </button>
@@ -382,20 +442,20 @@ export default function AuthPage() {
           )}
         </CardContent>
         {!mfaRequired && (
-          <CardFooter className="flex flex-col gap-4">
-            <div className="relative w-full flex items-center">
-              <div className="w-full border-t border-gray-200"></div>
-              <span className="bg-white px-2 text-xs text-gray-400 uppercase absolute left-1/2 -translate-x-1/2">
-                Or
+          <CardFooter className="flex flex-col gap-4 px-8 pb-8">
+            <div className="relative w-full flex items-center py-2">
+              <div className="w-full border-t border-slate-100"></div>
+              <span className="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest absolute left-1/2 -translate-x-1/2">
+                Secure Social Login
               </span>
             </div>
             <Button
               variant="outline"
-              className="w-full py-6 flex gap-3"
+              className="w-full py-6 flex gap-3 rounded-xl border-slate-200 hover:bg-slate-50 transition-all font-semibold text-slate-700"
               onClick={handleGoogleLogin}
             >
-              <FcGoogle size={24} />
-              <span>Google</span>
+              <FcGoogle size={20} />
+              <span>Continue with Google</span>
             </Button>
           </CardFooter>
         )}

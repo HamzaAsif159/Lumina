@@ -1,4 +1,4 @@
-import User from "../models/UserModal.js";
+import User from "../models/UserModel.js";
 import speakeasy from "speakeasy";
 import QRCode from "qrcode";
 import jwt from "jsonwebtoken";

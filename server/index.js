@@ -5,7 +5,8 @@ import cookieParser from "cookie-parser";
 import mongoose from "mongoose";
 import passport from "passport";
 import "./config/passport.js";
-import "./config/redis.js"
+import "./config/redis.js";
+import { initNATS } from "./config/natsClient.js";
 import routes from "./routes/index.js";
 
 dotenv.config();
@@ -27,24 +28,26 @@ app.use(
 app.use(passport.initialize());
 app.use("/api", routes);
 
-const server = app.listen(port, () => {
-  console.log(`Server running on port: ${port}`);
-});
-
-mongoose
-  .connect(databaseUrl)
-  .then(() => {
+const startServer = async () => {
+  try {
+    await mongoose.connect(databaseUrl);
     console.log("✅ Connected to MongoDB");
-  })
-  .catch((error) => {
-    console.error("❌ MongoDB connection error:", error);
+
+    await initNATS();
+
+    app.listen(port, () => {
+      console.log(`🚀 Server running on port: ${port}`);
+    });  
+  } catch (error) {
+    console.error("❌ Critical Startup Error:", error);
     process.exit(1);
-  });
+  }
+};
+
+startServer();
 
 process.on("SIGTERM", () => {
   console.log("SIGTERM received, shutting down gracefully");
-  server.close(() => {
-    mongoose.connection.close();
-    process.exit(0);
-  });
+  mongoose.connection.close();
+  process.exit(0);
 });

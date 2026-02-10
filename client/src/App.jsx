@@ -4,6 +4,8 @@ import AuthPage from "./pages/auth";
 import Chat from "./pages/chat";
 import Profile from "./pages/profile";
 import Settings from "./pages/settings";
+import Dashboard from "./pages/dashboard";
+import SocialMessages from "./pages/messages";
 import Navbar from "./components/common/Navbar";
 import { useAppStore } from "./store";
 import { Loader2 } from "lucide-react";
@@ -17,11 +19,11 @@ const PrivateRoute = ({ children }) => {
 const AuthRoute = ({ children }) => {
   const { userInfo, loading } = useAppStore();
   if (loading) return null;
-  return userInfo?._id ? <Navigate to="/chat" replace /> : children;
+  return userInfo?._id ? <Navigate to="/dashboard" replace /> : children;
 };
 
 export default function App() {
-  const { initializeAuth, loading, userInfo } = useAppStore();
+  const { initializeAuth, loading, userInfo, setupNats } = useAppStore();
   const location = useLocation();
   const initialized = useRef(false);
 
@@ -31,18 +33,19 @@ export default function App() {
 
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
-    const mfaRequired = params.get("mfaRequired");
 
     if (token) {
       localStorage.setItem("accessToken", token);
       window.history.replaceState({}, document.title, window.location.pathname);
-      initializeAuth();
-    } else if (mfaRequired === "true") {
-      // Do nothing, let AuthPage handle the URL
-    } else {
-      initializeAuth();
     }
+    initializeAuth();
   }, [initializeAuth]);
+
+  useEffect(() => {
+    if (userInfo?._id) {
+      setupNats(userInfo._id);
+    }
+  }, [userInfo, setupNats]);
 
   if (loading && !userInfo) {
     return (
@@ -64,6 +67,22 @@ export default function App() {
             <AuthRoute>
               <AuthPage />
             </AuthRoute>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <PrivateRoute>
+              <Dashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/messages"
+          element={
+            <PrivateRoute>
+              <SocialMessages />
+            </PrivateRoute>
           }
         />
         <Route
@@ -90,7 +109,7 @@ export default function App() {
             </PrivateRoute>
           }
         />
-        <Route path="*" element={<Navigate to="/auth" replace />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </>
   );

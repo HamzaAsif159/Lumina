@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import redis from "../config/redis.js";
 import { RedisKeys } from "../utils/redisKeys.js";
+import { updateUserStatus } from "../services/presenceService.js";
 
 export const verifyToken = async (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -27,6 +28,11 @@ export const verifyToken = async (req, res, next) => {
 
     req.userId = decoded.userId;
     req.userEmail = decoded.email;
+
+    updateUserStatus(req.userId, "online").catch((err) =>
+      console.error("Presence Background Error:", err),
+    );
+
     next();
   } catch (err) {
     return res

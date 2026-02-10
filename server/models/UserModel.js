@@ -23,6 +23,15 @@ const UserSchema = new mongoose.Schema({
     },
     backupCodes: [String],
   },
+  friends: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  pendingRequests: [
+    {
+      user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+      status: { type: String, enum: ["sent", "received"], default: "sent" },
+    },
+  ],
+  isOnline: { type: Boolean, default: false },
+  lastSeen: { type: Date, default: Date.now },
 });
 
 UserSchema.pre("save", async function (next) {

@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import User from "../models/UserModal.js";
+import User from "../models/UserModel.js";
 import { RedisKeys } from "../utils/redisKeys.js";
 import redis from "../config/redis.js";
 
@@ -50,5 +50,34 @@ export const updateUserInfo = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+export const searchUsers = async (req, res) => {
+  try {
+    const { query } = req.query;
+    const currentUserId = req.userId;
+
+    if (!query) {
+      return res.status(400).json({ message: "Search query is required" });
+    }
+
+    const users = await User.find({
+      $and: [
+        { _id: { $ne: currentUserId } },
+        {
+          $or: [
+            { firstName: { $regex: query, $options: "i" } },
+            { lastName: { $regex: query, $options: "i" } },
+            { email: { $regex: query, $options: "i" } },
+          ],
+        },
+      ],
+    }).select("firstName lastName image isOnline email");
+
+    return res.status(200).json({ success: true, users });
+  } catch (error) {
+    return res.status(500).json({ message: "Server error" });
   }
 };

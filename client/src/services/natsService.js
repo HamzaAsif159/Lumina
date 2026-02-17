@@ -30,7 +30,7 @@ export const natsService = {
   },
 
   async subscribeToNotifications(userId, onNotification) {
-    if (!nc) return;
+    if (!nc || isSubscribing) return;
 
     if (activeNotificationSub) {
       return activeNotificationSub;

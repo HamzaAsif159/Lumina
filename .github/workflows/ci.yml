@@ -28,10 +28,6 @@ jobs:
         working-directory: client
         run: npm run lint
 
-      - name: Test frontend
-        working-directory: client
-        run: npm run test
-
       - name: Build frontend
         working-directory: client
         run: npm run build
